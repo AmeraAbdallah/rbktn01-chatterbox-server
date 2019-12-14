@@ -11,7 +11,7 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-
+var posted = [];
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -53,26 +53,34 @@ var requestHandler = function(request, response) {
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
  
-  var posted = [];
+  
     
     if(request.method === "GET" && request.url === "/classes/messages" ){
+      
+
       response.end(JSON.stringify({results:posted}));
     }
   else 
-  if(request.method === "POST" && request.url === "/classes/messages" ){
+  if(request.method === "OPTIONS" && request.url === "/classes/messages/:order" ){
+      console.log("test")
+    response.end(JSON.stringify({results:posted}));
+  }
+
+  else if(request.method === "POST" && request.url === "/classes/messages" ){
     var postdata = '';
     var body = '';
     request.on('data', function (data) {
         body += data;
     });
     request.on('end', function() {
-        var postdata = body;
+        var postdata = JSON.parse(body);
+        
         posted.push(postdata);
-        console.log(postdata);
+        console.log(posted);
     });
     response.writeHead(201, headers)
     response.end(JSON.stringify({results:posted}));
-    response.end(JSON.stringify(postdata));
+    // response.end(JSON.stringify(postdata));
   }
   else
   {
@@ -98,4 +106,4 @@ var defaultCorsHeaders = {
   'access-control-allow-headers': 'content-type, accept',
   'access-control-max-age': 10 // Seconds.
 };
-module.exports.handleRequest = requestHandler;
+module.exports.handler = requestHandler;
