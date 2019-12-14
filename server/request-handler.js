@@ -11,6 +11,14 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+
+var defaultCorsHeaders = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'access-control-allow-headers': 'content-type, accept',
+  'access-control-max-age': 10 // Seconds.
+};
+
 var posted = [];
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -27,7 +35,7 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log('Serving request type ' + request.method + ' for url ' + request.url);
+  console.log('Serving request type ' + request.method +  ' for url ' + request.url);
 
   // The outgoing status.
   var statusCode = 200;
@@ -55,18 +63,16 @@ var requestHandler = function(request, response) {
  
   
     
-    if(request.method === "GET" && request.url === "/classes/messages" ){
-      
-
-      response.end(JSON.stringify({results:posted}));
-    }
-  else 
-  if(request.method === "OPTIONS" && request.url === "/classes/messages/:order" ){
-      console.log("test")
+  if(request.method === "GET" && request.url === "/classes/messages" ){
+    console.log(JSON.stringify({results:posted}))
     response.end(JSON.stringify({results:posted}));
-  }
+  } else if(request.method === "OPTIONS"){
 
-  else if(request.method === "POST" && request.url === "/classes/messages" ){
+    request.on('end', function() {
+      response.writeHead(statusCode, headers);
+    });
+    
+  } else if(request.method === "POST" && request.url === "/classes/messages" ){
     var postdata = '';
     var body = '';
     request.on('data', function (data) {
@@ -81,14 +87,10 @@ var requestHandler = function(request, response) {
     response.writeHead(201, headers)
     response.end(JSON.stringify({results:posted}));
     // response.end(JSON.stringify(postdata));
-  }
-  else
-  {
+  } else {
     response.writeHead(404, headers)
     response.end();
-  }
-  
-  
+  } 
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -100,10 +102,5 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
+
 module.exports.handler = requestHandler;
